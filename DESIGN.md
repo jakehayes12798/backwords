@@ -215,6 +215,35 @@ show every hop even with repeats — leaning dedupe for readability).
   fresh page load — no cycle-detection/shortcut logic in v1.
 - **Search:** plain text box with autocomplete, backed by `/api/lexemes/search`.
 
+## Planned Enhancements (not in v1)
+
+- **Idiom etymology** (already noted above): tracing the origins of idioms/phrases,
+  not just single words.
+- **Word-sense definitions per lexeme.** etymology-db only carries etymological
+  *relationships* — no definitions/glosses, confirmed by inspecting its own
+  columns and real rows (e.g. "cyrnel" (Old English) has only structural
+  relations, no meaning data). Without definitions, Backwords can show a
+  word's form changing across history but not its *meaning* changing (e.g.
+  "kernel" narrowing from a general seed/core sense, or the well-documented
+  "navel"/"hub" semantic drift from "central point" to "belly button"
+  specifically) — a real gap, since sense-shift is one of the more
+  interesting parts of etymology.
+  - Wiktionary itself (the same underlying source as etymology-db) does carry
+    definitions, via the MediaWiki Action API (`action=query&prop=...`) or
+    the newer REST API (`/api/rest_v1/page/definition/{term}`) — same CC
+    BY-SA 4.0 license already covering this project, no API key required.
+  - Real complications to plan for before building this: Wiktionary pages
+    are keyed by modern spelling and can hold multiple languages/senses per
+    page, so older/reconstructed ancestor forms (e.g. Proto-Germanic,
+    Proto-Indo-European roots) may have thin or no coverage. This would be a
+    second fetch-and-parse import pass (likely one HTTP call per unique
+    lexeme), needing rate-limiting and caching rather than live per-request
+    lookups, writing into a new `Definition` field on `Lexeme` (or a related
+    table if multiple senses need to be preserved).
+  - **Sequencing decision:** build this as a v1.5 enrichment pass *after* the
+    core spine/API/frontend loop works end to end — not woven into the
+    current import pipeline while it's still being built.
+
 ## Attribution
 
 This project's dataset derives from [etymology-db](https://github.com/droher/etymology-db)
