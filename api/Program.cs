@@ -1,41 +1,37 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Globalization;
+using Backwords.Api.Models;
+using CsvHelper;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+using var reader = new StreamReader(@"..\data\raw\etymology.csv");
+using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+var rows = csv.GetRecords<EtymologyDbRow>().ToList();
 
-var app = builder.Build();
+Console.WriteLine($"Read {rows.Count} rows from CSV file.");
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// create a dictionary where the key is a tuple of (Term, Lang) and the value is a list of EtymologyDbRow objects, so we can lookup by
+// term and language and get all the related terms for that term in that language
+var etymologyDict = rows.GroupBy(r => (r.Term, r.Lang)).ToDictionary(g => g.Key, g => g.ToList());
+
+Console.WriteLine($"Created dictionary with {etymologyDict.Count} unique (Term, Lang) pairs.");
+
+foreach (var row in etymologyDict)
 {
-    app.MapOpenApi();
+    var (term, lang) = row.Key;
+
+    if (!term.Equals("algorithm", StringComparison.OrdinalIgnoreCase))
+    {
+        continue;
+    }
+
+    var relatedTerms = row.Value;
+
+    Console.WriteLine($"Term: {term}, Lang: {lang}");
+    foreach (var relatedTerm in relatedTerms)
+    {
+        Console.WriteLine(
+            $"  Related Term: {relatedTerm.RelatedTerm}, Related Lang: {relatedTerm.RelatedLang}, Relation Type: {relatedTerm.RelType}"
+        );
+    }
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+Console.WriteLine("Terminated.");
