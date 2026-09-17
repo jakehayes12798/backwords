@@ -13,7 +13,8 @@ namespace Backwords.Api.Migrations
             migrationBuilder.RenameColumn(
                 name: "LanguageCode",
                 table: "Lexemes",
-                newName: "Language");
+                newName: "Language"
+            );
         }
 
         /// <inheritdoc />
@@ -22,7 +23,8 @@ namespace Backwords.Api.Migrations
             migrationBuilder.RenameColumn(
                 name: "Language",
                 table: "Lexemes",
-                newName: "LanguageCode");
+                newName: "LanguageCode"
+            );
         }
     }
 }
