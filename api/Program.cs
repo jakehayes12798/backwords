@@ -23,35 +23,21 @@ public static class Program
             $"Created dictionary with {etymologyDict.Count} unique (Term, Lang) pairs."
         );
 
-        var currentKey = ("algorithm", "English");
-        etymologyDict.TryGetValue(currentKey, out var currentRows);
-
-        while (currentRows != null)
+        foreach (var currentKey in SeedWords.All)
         {
-            var hop = BunnyHopper.PickPrimaryHop(currentRows);
+            etymologyDict.TryGetValue(currentKey, out var currentRows);
 
-            if (hop is null)
-            {
-                Console.WriteLine(
-                    $"{currentKey.Item1} ({currentKey.Item2}) is a root — no further hop."
-                );
-                break;
-            }
-
-            if (currentRows == null)
-            {
-                Console.WriteLine(
-                    $"{currentKey.Item1} ({currentKey.Item2}) has no data in etymology-db — chain ends here (data gap, not necessarily a linguistic root)."
-                );
-                break;
-            }
-
-            Console.WriteLine(
-                $"{currentKey.Item1} ({currentKey.Item2}) --[{hop.RelType}]--> {hop.RelatedTerm} ({hop.RelatedLang})"
+            var hops = BunnyHopper.BuildHopChain(
+                etymologyDict,
+                currentRows ?? new List<EtymologyDbRow>()
             );
 
-            currentKey = (hop.RelatedTerm, hop.RelatedLang);
-            etymologyDict.TryGetValue(currentKey, out currentRows);
+            foreach (var hop in hops)
+            {
+                Console.WriteLine(
+                    $"Hop: {hop.Term} ({hop.Lang}) -> {hop.RelatedTerm} ({hop.RelatedLang})"
+                );
+            }
         }
 
         Console.WriteLine("Terminated.");

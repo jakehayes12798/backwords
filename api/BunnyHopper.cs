@@ -23,4 +23,29 @@ public static class BunnyHopper
     {
         return rowsForWord.FirstOrDefault(row => ChainRelationTypes.Contains(row.RelType));
     }
+
+    public static List<EtymologyDbRow> BuildHopChain(
+        Dictionary<(string Term, string Lang), List<EtymologyDbRow>> etymologyDict,
+        List<EtymologyDbRow> rowsForWord
+    )
+    {
+        var chain = new List<EtymologyDbRow>();
+        var currentRows = rowsForWord;
+
+        while (currentRows != null && currentRows.Count > 0)
+        {
+            var hop = PickPrimaryHop(currentRows);
+            if (hop == null)
+            {
+                break;
+            }
+
+            chain.Add(hop);
+
+            var nextKey = (hop.RelatedTerm, hop.RelatedLang);
+            etymologyDict.TryGetValue(nextKey, out currentRows);
+        }
+
+        return chain;
+    }
 }
