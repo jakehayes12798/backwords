@@ -21,7 +21,11 @@ public static class BunnyHopper
     /// </summary>
     public static EtymologyDbRow? PickPrimaryHop(List<EtymologyDbRow> rowsForWord)
     {
-        return rowsForWord.FirstOrDefault(row => ChainRelationTypes.Contains(row.RelType));
+        return rowsForWord
+            // remove any rows that don't have a related term, since those can't be hops
+            .Where(row => !string.IsNullOrWhiteSpace(row.RelatedTerm))
+            // pick the first row that has a chain-type relation, if any
+            .FirstOrDefault(row => ChainRelationTypes.Contains(row.RelType));
     }
 
     public static List<EtymologyDbRow> BuildHopChain(
