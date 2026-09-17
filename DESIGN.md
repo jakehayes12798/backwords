@@ -36,11 +36,16 @@ and click into related words to go down a rabbit hole.
 Two tables, deliberately normalized (lexemes stored once, referenced by id) rather
 than mirroring etymology-db's denormalized one-row-per-relationship CSV shape.
 
+**Correction (post-data-inspection):** etymology-db's `lang` column holds full
+language names ("English", "Middle English", "Proto-Indo-European"), not short
+codes. The schema below reflects this — no code-mapping table needed.
+
 ```
 Table: lexemes
   id            (primary key)
   term          (the word/term text, e.g. "etymology", "ethimologie", "etymologia")
-  language_code (e.g. "en", "fro" for Old French, "la" for Latin, "grc" for Ancient Greek)
+  language      (full name, e.g. "English", "Old French", "Latin", "Ancient Greek" —
+                 matches etymology-db's own `lang` column directly)
   is_seed_word  (bool — was this one of the curated starting English words, vs. an
                  ancestor pulled in to complete a chain?)
 
@@ -66,6 +71,46 @@ Table: derivations
 This split exists because the UI itself is two different shapes: a straight-line
 vertical chain (ancestor to ancestor) with optional side-branches per node
 (related-but-not-ancestral words).
+
+### Real-data complication: multiple attested etymology paths
+
+Inspecting real etymology-db rows (e.g. "algorithm") showed the source data is
+not always a clean single-parent chain. Wiktionary sometimes records multiple
+attested derivation paths for one word (grouped via `group_tag`/`parent_tag`/
+`position` in the source CSV), and a `group_derived_root` cluster's rows are
+siblings anchored to the *same* term rather than a recursive word-to-word
+chain — the true recursive jump (looking up a related term's own rows to
+continue further back) only happens when you follow `related_term_id` into
+that term's own term+language pair.
+
+**v1 policy (a deliberate, documented simplification):** for each word, only
+chain-type relations are considered for the primary lineage spine
+(`inherited_from`, `borrowed_from`, `derived_from`, `root`, and similar).
+When a word has multiple candidate groups/positions, **position 0 of the
+first relevant group is taken as the primary next hop**, and the walk
+recurses into that related term's own rows from there. Every other row for
+that word (alternate positions, alternate groups, and all sideways relation
+types) is preserved as "related" data on that node, not discarded — it's
+just not part of the primary spine.
+
+This means Backwords shows *one* primary etymology path per word when
+multiple are attested by Wiktionary, with alternates surfaced as related
+terms rather than additional spine branches. This is an intentional, stated
+scope decision, not a silent gap — worth saying explicitly in the UI/README
+if this ever comes up (e.g. a small "showing the primary attested path;
+other theories exist" note).
+
+### Data quality notes from real inspection
+
+- Some `related_term` values are blank/whitespace-only in the source data
+  (e.g. an "Ancient Greek" root for "panentheism"). Import logic must trim
+  and treat blank as null/skip, not as a real term.
+- etymology-db's own `term_id` is a deterministic hash of (term, lang) — useful
+  as an in-memory dedup key *during import only*. It is NOT the same as this
+  project's own `Lexeme.Id` (an autoincrement int assigned by SQLite/EF Core).
+  The import script's job is to map etymology-db's hash → this project's own
+  int id via a lookup dictionary; the source hash itself does not need to be
+  persisted in the database.
 
 ## Recursive Lineage Query
 

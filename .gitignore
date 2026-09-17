@@ -1,3 +1,6 @@
+## CSV
+data/raw
+
 # .NET
 bin/
 obj/
@@ -7,11 +10,6 @@ obj/
 # Visual Studio
 .vs/
 *.sln.docstates
-
-# SQLite (generated/local databases - the schema/seed scripts are what's tracked, not the db file itself)
-*.db
-*.sqlite
-*.sqlite3
 
 # Node (client/ has its own .gitignore too, but this covers the root just in case)
 node_modules/
