@@ -28,6 +28,24 @@ public static class BunnyHopper
             .FirstOrDefault(row => ChainRelationTypes.Contains(row.RelType));
     }
 
+    /// <summary>
+    /// Given all rows for one (term, lang) pair, picks the rows that represent
+    /// "sideways hops" — i.e. relations that are not part of the primary chain.
+    /// </summary>
+    /// <param name="rowsForWord"></param>
+    /// <returns></returns>
+    public static List<EtymologyDbRow> PickSidewaysHops(List<EtymologyDbRow> rowsForWord)
+    {
+        return rowsForWord
+            // remove any rows that don't have a related term, since those can't be hops
+            .Where(row => !string.IsNullOrWhiteSpace(row.RelatedTerm))
+            // keep every row whose relation type is NOT one of the chain-following types —
+            // these are the "see related" callouts, not the primary lineage spine
+            .Where(row => !ChainRelationTypes.Contains(row.RelType))
+            .DistinctBy(row => (row.RelatedTerm, row.RelatedLang))
+            .ToList();
+    }
+
     public static List<EtymologyDbRow> BuildHopChain(
         Dictionary<(string Term, string Lang), List<EtymologyDbRow>> etymologyDict,
         List<EtymologyDbRow> rowsForWord
