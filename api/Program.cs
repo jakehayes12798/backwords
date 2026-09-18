@@ -25,19 +25,13 @@ public static class Program
 
         foreach (var currentKey in SeedWords.All)
         {
-            etymologyDict.TryGetValue(currentKey, out var currentRows);
-
-            var hops = BunnyHopper.BuildHopChain(
-                etymologyDict,
-                currentRows ?? new List<EtymologyDbRow>()
+            LineageNode lineage = LineageBuilder.BuildLineage(
+                new EtymologyDictionary(rows),
+                currentKey.Term,
+                currentKey.Language
             );
 
-            foreach (var hop in hops)
-            {
-                Console.WriteLine(
-                    $"Hop: {hop.Term} ({hop.Lang}) -> {hop.RelatedTerm} ({hop.RelatedLang})"
-                );
-            }
+            Console.WriteLine($"Lineage for {currentKey.Term} ({currentKey.Language}): {lineage}");
         }
 
         Console.WriteLine("Terminated.");
