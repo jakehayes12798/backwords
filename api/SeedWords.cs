@@ -1,5 +1,7 @@
 namespace Backwords.Api;
 
+using System.Collections.Generic;
+
 /// <summary>
 /// Curated starting word list for the etymology import pipeline. Each entry is an
 /// English headword to seed a lineage chain from (see seed-words.md for the
@@ -13,8 +15,8 @@ namespace Backwords.Api;
 public static class SeedWords
 {
     public const string English = "English";
-    public const IReadOnlyList<(string Term, string Language)> All = new()
-    {
+    public static readonly List<(string Term, string Language)> All =
+    [
         // Greatest hits
         ("robot", English),
         ("algorithm", English),
@@ -170,5 +172,5 @@ public static class SeedWords
         ("exploit", English),
         ("vulnerability", English),
         ("breach", English),
-    };
+    ];
 }

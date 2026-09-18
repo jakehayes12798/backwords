@@ -34,6 +34,11 @@ public class LineageNode
     public List<SidewaysRelation> Related { get; set; } = new();
 
     /// <summary>
+    /// Represents whether a cycle was detected in the lineage tree. If true, it indicates that the current term has already been visited in the ancestry chain, preventing infinite recursion and indicating a circular relationship in the etymology data.
+    /// </summary>
+    public bool CycleDetected { get; set; } = false;
+
+    /// <summary>
     /// Returns a string representation of the lineage node, including its term, language,
     /// relation to ancestor, and any related terms. This is useful for debugging and logging.
     /// </summary>
@@ -45,7 +50,7 @@ public class LineageNode
                 ? $" [see related: {string.Join(", ", Related.Select(r => $"{r.Term} ({r.Language})"))}]"
                 : "";
         var ancestorStr = Ancestor != null ? $" -> {Ancestor}" : "";
-        return $"{Term} ({Language}){relatedStr}{ancestorStr}";
+        return $"{Term} ({Language}){relatedStr}{ancestorStr} {(CycleDetected ? " [cycle detected]" : "")}";
     }
 }
 
