@@ -1,8 +1,18 @@
 namespace Backwords.Api.Models;
 
+/// <summary>
+/// Represents a node in the lineage tree of a term, including its term, language, relation to its ancestor, and any related terms.
+/// </summary>
 public class LineageNode
 {
+    /// <summary>
+    /// The term represented by this lineage node.
+    /// </summary>
     public required string Term { get; set; }
+
+    /// <summary>
+    /// The language of the term represented by this lineage node.
+    /// </summary>
     public required string Language { get; set; }
 
     /// <summary>
@@ -11,6 +21,9 @@ public class LineageNode
     /// </summary>
     public string? RelationToAncestor { get; set; }
 
+    /// <summary>
+    /// The ancestor node in the lineage tree, representing the term from which this term is derived. This property is null for the root node of the lineage tree, which has no ancestor.
+    /// </summary>
     public LineageNode? Ancestor { get; set; }
 
     /// <summary>
@@ -36,10 +49,31 @@ public class LineageNode
     }
 }
 
+/// <summary>
+/// Represents a sideways relation to a term that is related to the current term but not part of the primary lineage chain.
+/// </summary>
+/// <remarks>
+/// This could be, for example, a cognate, doublet, or other related term that is not the primary ancestor of the current term.
+/// </remarks>
 public class SidewaysRelation
 {
+    /// <summary>
+    /// The term that is related to the current term but not part of the primary lineage chain.
+    /// </summary>
     public required string Term { get; set; }
+
+    /// <summary>
+    /// The language of the related term.
+    /// </summary>
     public required string Language { get; set; }
+
+    /// <summary>
+    /// The type of relation between the current term and the related term (e.g., "cognate", "doublet", etc.).
+    /// </summary>
     public required string RelationType { get; set; }
+
+    /// <summary>
+    /// Indicates whether the related term is part of the collection of terms being analyzed. This can be used to determine if the related term should be included in further analysis or processing.
+    /// </summary>
     public bool InCollection { get; set; }
 }
